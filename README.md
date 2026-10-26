@@ -10,35 +10,47 @@ Apache Airflow manages the pipeline execution and task dependencies, while Pytho
 
 ## Architecture
 
-```text
-Source Database (SQLite)
-          |
-          v
-Python Data Loading Scripts
-          |
-          v
-DuckDB Data Warehouse
-          |
-          v
-Apache Airflow Orchestration
-          |
-          v
-dbt Transformations
-          |
-          +----------------------+
-          |                      |
-          v                      v
-    Sales Fact Model      Customer Sales Mart
-          |
-          v
-    dbt Snapshot
-          |
-          v
-    dbt Data Tests
-          |
-          v
-Python Data Validation
-```
+
+flowchart TD
+    A["SQLite Source Database"] --> B["Python Data Ingestion"]
+    B --> C["DuckDB Data Warehouse"]
+
+    subgraph AIRFLOW["Apache Airflow Orchestration"]
+        D["Check Project Files"]
+        E["Sync Customers"]
+        F["Incremental Load"]
+        G["dbt Run"]
+        H["dbt Snapshot"]
+        I["dbt Test"]
+        J["Validate Sales"]
+        K["Validate Customer Sales"]
+
+        D --> E --> F --> G --> H --> I --> J --> K
+    end
+
+    C --> E
+    C --> F
+    G --> L["dbt Transformation Models"]
+
+    subgraph DBT["dbt Analytics Layer"]
+        L --> M["Staging Models"]
+        M --> N["Fact Order Sales"]
+        M --> O["Customer Sales Mart"]
+        P["Customer Snapshot"]
+    end
+
+    H --> P
+    N --> I
+    O --> I
+    I --> Q["Data Quality Validation"]
+    Q --> R["Validated Analytics Data"]
+
+    style A fill:#E0F2FE,stroke:#0284C7,color:#0F172A
+    style C fill:#DCFCE7,stroke:#16A34A,color:#14532D
+    style AIRFLOW fill:#F3E8FF,stroke:#9333EA,color:#581C87
+    style DBT fill:#FEF3C7,stroke:#D97706,color:#78350F
+    style R fill:#DCFCE7,stroke:#16A34A,color:#14532D
+
 
 ## Technology Stack
 
