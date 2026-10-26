@@ -11,7 +11,7 @@ Apache Airflow manages the pipeline execution and task dependencies, while Pytho
 ## Architecture
 
 
-flowchart TD
+```flowchart TD
     A["SQLite Source Database"] --> B["Python Data Ingestion"]
     B --> C["DuckDB Data Warehouse"]
 
@@ -50,7 +50,7 @@ flowchart TD
     style AIRFLOW fill:#F3E8FF,stroke:#9333EA,color:#581C87
     style DBT fill:#FEF3C7,stroke:#D97706,color:#78350F
     style R fill:#DCFCE7,stroke:#16A34A,color:#14532D
-
+```
 
 ## Technology Stack
 
