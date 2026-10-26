@@ -1,0 +1,64 @@
+.git
+.env
+.DS_Store
+airflow_settings.yaml
+__pycache__/
+astro
+.venv
+.astro/standalone/
+.astro/worktrees/
+airflow-webserver.pid
+webserver_config.py
+airflow.cfg
+airflow.db
+.astro/*.local.yml
+.astro/*.local.yaml
+
+**/.astro/dbt_metadata.json
+**/.astro/manifest.slim.json
+
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# Airflow runtime files
+logs/
+.astro/
+airflow.cfg
+airflow.db
+airflow-webserver.pid
+
+# Local databases
+*.duckdb
+*.duckdb.wal
+*.db
+*.sqlite
+*.sqlite3
+
+# Secrets and local environment
+.env
+.env.*
+!.env.example
+
+# Generated dbt files
+**/target/
+**/dbt_packages/
+**/logs/
+
+# OS and editor files
+.DS_Store
+Thumbs.db
+.vscode/
+# dbt local databases and generated artifacts
+**/*.duckdb
+**/*.duckdb.wal
+**/target/
+**/dbt_packages/
+**/dbt_internal_packages/
+**/logs/
+
+# Local dbt profile configuration
+include/project/dbt_config/profiles.yml
+include/project/dbt_config/.user.yml

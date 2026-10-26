@@ -1,0 +1,7 @@
+orders_dbt:
+  target: dev
+  outputs:
+    dev:
+      type: duckdb
+      path: "{{ env_var('DUCKDB_PATH', '/usr/local/airflow/include/project/warehouse.duckdb') }}"
+      threads: 1
