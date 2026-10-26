@@ -1,45 +1,209 @@
-Overview
-========
+# Orders Data Migration Pipeline
 
-Welcome to Astronomer! This project was generated after you ran 'astro dev init' using the Astronomer CLI. This readme describes the contents of the project, as well as how to run Apache Airflow on your local machine.
+An end-to-end data engineering project that orchestrates data migration, customer synchronization, incremental loading, transformation, snapshotting, and data quality validation using **Python, Apache Airflow, DuckDB, and dbt**.
 
-Project Contents
-================
+## Project Overview
 
-Your Astro project contains the following files and folders:
+This project demonstrates how to build and orchestrate a data pipeline that extracts data from a source database, loads it into a DuckDB warehouse, transforms raw data into analytics-ready models using dbt, and validates the resulting sales data.
 
-- dags: This folder contains the Python files for your Airflow Dags. By default, this directory includes one example Dag:
-    - `example_astronauts`: This Dag shows a simple ETL pipeline example that queries the list of astronauts currently in space from the Open Notify API and prints a statement for each astronaut. The Dag uses the TaskFlow API to define tasks in Python, and dynamic task mapping to dynamically print a statement for each astronaut. For more on how this Dag works, see our [Getting started tutorial](https://www.astronomer.io/docs/learn/get-started-with-airflow).
-- Dockerfile: This file contains a versioned Astro Runtime Docker image that provides a differentiated Airflow experience. If you want to execute other commands or overrides at runtime, specify them here.
-- include: This folder contains any additional files that you want to include as part of your project. It is empty by default.
-- packages.txt: Install OS-level packages needed for your project by adding them to this file. It is empty by default.
-- requirements.txt: Install Python packages needed for your project by adding them to this file. It is empty by default.
-- plugins: Add custom or community plugins for your project to this file. It is empty by default.
-- airflow_settings.yaml: Use this local-only file to specify Airflow Connections, Variables, and Pools instead of entering them in the Airflow UI as you develop Dags in this project.
+Apache Airflow manages the pipeline execution and task dependencies, while Python handles data loading and synchronization.
 
-Deploy Your Project Locally
-===========================
+## Architecture
 
-Start Airflow on your local machine by running 'astro dev start'.
+```text
+Source Database (SQLite)
+          |
+          v
+Python Data Loading Scripts
+          |
+          v
+DuckDB Data Warehouse
+          |
+          v
+Apache Airflow Orchestration
+          |
+          v
+dbt Transformations
+          |
+          +----------------------+
+          |                      |
+          v                      v
+    Sales Fact Model      Customer Sales Mart
+          |
+          v
+    dbt Snapshot
+          |
+          v
+    dbt Data Tests
+          |
+          v
+Python Data Validation
+```
 
-This command will spin up five Docker containers on your machine, each for a different Airflow component:
+## Technology Stack
 
-- Postgres: Airflow's Metadata Database
-- Scheduler: The Airflow component responsible for monitoring and triggering tasks
-- Dag Processor: The Airflow component responsible for parsing Dags
-- API Server: The Airflow component responsible for serving the Airflow UI and API
-- Triggerer: The Airflow component responsible for triggering deferred tasks
+- **Python** — Data extraction, loading, synchronization, and validation
+- **Apache Airflow** — Workflow orchestration and task dependency management
+- **DuckDB** — Analytical data warehouse
+- **dbt** — SQL-based data transformations, testing, and snapshots
+- **SQLite** — Source database
+- **Docker / Astro CLI** — Local Airflow development environment
+- **Git and GitHub** — Version control and project hosting
 
-When all five containers are ready the command will open the browser to the Airflow UI at http://localhost:8080/. You should also be able to access your Postgres Database at 'localhost:5432/postgres' with username 'postgres' and password 'postgres'.
+## Key Features
 
-Note: If you already have either of the above ports allocated, you can either [stop your existing Docker containers or change the port](https://www.astronomer.io/docs/astro/cli/troubleshoot-locally#ports-are-not-available-for-my-local-airflow-webserver).
+- Source data extraction and warehouse loading
+- Incremental loading of new orders and order items
+- Customer synchronization
+- SQL transformations using dbt
+- Staging models for customers, products, orders, and order items
+- Fact table for order sales
+- Customer sales mart for analytics
+- Customer history tracking using a dbt snapshot
+- Automated dbt data quality tests
+- Sales reconciliation and validation
+- Airflow orchestration with task dependencies
 
-Deploy Your Project to Astronomer
-=================================
+## Project Structure
 
-If you have an Astronomer account, pushing code to a Deployment on Astronomer is simple. For deploying instructions, refer to Astronomer documentation: https://www.astronomer.io/docs/astro/deploy-code/
+```text
+orders-data-migration-pipeline/
+├── dags/
+│   ├── orders_migration_pipeline.py
+│   └── exampledag.py
+├── include/
+│   └── project/
+│       ├── dbt_config/
+│       │   └── profiles.example.yml
+│       ├── orders_dbt/
+│       │   ├── models/
+│       │   │   ├── stg_customers.sql
+│       │   │   ├── stg_products.sql
+│       │   │   ├── stg_orders.sql
+│       │   │   ├── stg_order_items.sql
+│       │   │   ├── fct_order_sales.sql
+│       │   │   ├── mart_customer_sales.sql
+│       │   │   └── schema.yml
+│       │   ├── snapshots/
+│       │   │   └── customers_snapshot.sql
+│       │   └── dbt_project.yml
+│       ├── extract_load.py
+│       ├── incremental_load.py
+│       ├── sync_customers.py
+│       ├── check_sales.py
+│       └── check_customer_sales.py
+├── tests/
+├── Dockerfile
+├── packages.txt
+├── requirements.txt
+├── .dockerignore
+└── .gitignore
+```
 
-Contact
-=======
+## Pipeline Workflow
 
-The Astronomer CLI is maintained with love by the Astronomer team. To report a bug or suggest a change, reach out to our support.
+The Airflow DAG, `orders_data_migration_pipeline`, executes the following tasks in sequence:
+
+1. **Check project files** — Verify that required scripts, the warehouse, and the dbt profile are present.
+2. **Sync customers** — Synchronize customer data with the warehouse.
+3. **Incremental load** — Load new orders and order items.
+4. **dbt run** — Execute SQL transformations.
+5. **dbt snapshot** — Track changes to customer records.
+6. **dbt test** — Execute configured data quality tests.
+7. **Validate sales** — Check sales fact data and order-level results.
+8. **Validate customer sales** — Reconcile customer-level sales metrics.
+
+## Validation Results
+
+The pipeline was successfully executed in the local Airflow environment.
+
+| Validation metric | Result |
+|---|---:|
+| Customers with orders | 200 |
+| Distinct orders | 5,002 |
+| Total units purchased | 37,396 |
+| Total sales | 4,213,081.29 |
+| dbt models created successfully | 8 |
+| dbt data tests previously passed | 18 |
+| Airflow tasks in successful DAG run | 8 |
+
+The customer sales validation confirmed that the summary and fact data matched for customer counts, distinct orders, total units, and total sales.
+
+## Prerequisites
+
+- Python compatible with your installed Airflow environment
+- Docker Desktop
+- Astro CLI
+- Git
+- dbt Core and the dbt-duckdb adapter
+
+Use the project's `requirements.txt` and Astro configuration to determine the exact dependency versions.
+
+## Running the Project
+
+### 1. Clone the repository
+
+```bash
+git clone https://github.com/riiiiiiiu/orders-data-migration-pipeline.git
+cd orders-data-migration-pipeline
+```
+
+### 2. Start the local Airflow environment
+
+```bash
+astro dev start
+```
+
+Wait for the Airflow services to become available.
+
+### 3. Prepare the source database and warehouse
+
+The local SQLite and DuckDB database files are intentionally excluded from Git. Prepare them using the project's data-generation and loading scripts, following their intended execution order.
+
+For example, inspect `make_source.py` and `extract_load.py` before running them. The full-refresh loading script may rebuild the warehouse, so do not run it against data you need to preserve.
+
+### 4. Configure dbt
+
+Use `include/project/dbt_config/profiles.example.yml` as a starting template for your local `profiles.yml`.
+
+Ensure the dbt profile name is `orders_dbt` and that the configured DuckDB path points to the warehouse location accessible from the Airflow container.
+
+### 5. Run the Airflow DAG
+
+Open:
+
+```text
+http://localhost:8080
+```
+
+Find `orders_data_migration_pipeline` and trigger it from the Airflow interface.
+
+### 6. Review the results
+
+Inspect the task logs in Airflow and confirm that the dbt transformations, tests, and Python validation tasks succeed.
+
+## Data and Configuration Notes
+
+- Local `.db`, `.duckdb`, and other database files are excluded from version control.
+- The real local dbt profile is excluded; use the example profile as a template.
+- Airflow logs, generated dbt artifacts, and local environment files are excluded.
+- The source database and warehouse must be prepared locally before the full pipeline can run.
+
+## Future Enhancements
+
+- Add automated scheduling and retry policies.
+- Add logging and alerting for pipeline failures.
+- Add a larger set of incremental-load and data quality tests.
+- Add CI checks for Python code and dbt models.
+- Add pipeline monitoring and execution metrics.
+- Add automated environment setup and reproducible sample-data generation.
+
+## Author
+
+**Rehan Shaikh**
+
+Aspiring Data Engineer interested in Python, SQL, data pipelines, cloud technologies, and analytics engineering.
+
+## License
+
+No license has been added yet. Contact the repository owner before reusing this project unless a license is added.
